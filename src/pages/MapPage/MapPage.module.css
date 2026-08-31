@@ -8,6 +8,9 @@
   position: absolute;
   inset: 0 0 0 0;
 }
+.map :global(.maplibregl-ctrl-bottom-right) {
+  bottom: calc(3.5rem + env(safe-area-inset-bottom));
+}
 .statuses {
   position: absolute;
   z-index: var(--z-controls);

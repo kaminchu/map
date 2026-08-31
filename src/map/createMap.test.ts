@@ -48,6 +48,7 @@ describe("createMap", () => {
         }),
       }),
     );
+    expect(STD_TILE_SOURCE.attribution).toContain("地図出典:");
   });
 
   it("places zoom controls away from the bottom navigation", () => {
