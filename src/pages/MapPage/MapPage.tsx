@@ -216,8 +216,8 @@ function CreateAreaDialog({
 }) {
   const open = useUiStore((state) => state.dialog === "create-area");
   const [name, setName] = useState(defaultAreaName());
-  const [minZoom, setMinZoom] = useState(5);
-  const [maxZoom, setMaxZoom] = useState(7);
+  const [minZoom, setMinZoom] = useState("5");
+  const [maxZoom, setMaxZoom] = useState("7");
   const [estimate, setEstimate] = useState<{ usage?: number; quota?: number }>();
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -228,29 +228,42 @@ function CreateAreaDialog({
       Math.max(STD_TILE_SOURCE.minZoom, Math.floor(snapshot.zoom)),
     );
     setName(defaultAreaName());
-    setMinZoom(currentZoom);
-    setMaxZoom(currentZoom);
+    setMinZoom(String(currentZoom));
+    setMaxZoom(String(currentZoom));
     setError("");
     void getStorageEstimate()
       .then(setEstimate)
       .catch(() => setEstimate(undefined));
   }, [open, snapshot]);
-  const tileCount = snapshot ? countTilesForBounds(snapshot.bounds, minZoom, maxZoom) : 0;
-  const bytes = tileCount * DEFAULT_ESTIMATED_TILE_BYTES;
+  const parsedMinZoom = minZoom === "" ? Number.NaN : Number(minZoom);
+  const parsedMaxZoom = maxZoom === "" ? Number.NaN : Number(maxZoom);
+  const validZoomRange =
+    Number.isInteger(parsedMinZoom) &&
+    Number.isInteger(parsedMaxZoom) &&
+    parsedMinZoom >= STD_TILE_SOURCE.minZoom &&
+    parsedMaxZoom <= STD_TILE_SOURCE.maxZoom &&
+    parsedMinZoom <= parsedMaxZoom;
+  const tileCount =
+    snapshot && validZoomRange
+      ? countTilesForBounds(snapshot.bounds, parsedMinZoom, parsedMaxZoom)
+      : undefined;
+  const bytes = tileCount === undefined ? undefined : tileCount * DEFAULT_ESTIMATED_TILE_BYTES;
   const available =
     estimate?.quota === undefined ? undefined : Math.max(0, estimate.quota - (estimate.usage ?? 0));
-  const invalid =
-    name.trim().length < 1 ||
-    name.trim().length > 50 ||
-    !Number.isInteger(minZoom) ||
-    !Number.isInteger(maxZoom) ||
-    minZoom < STD_TILE_SOURCE.minZoom ||
-    maxZoom > STD_TILE_SOURCE.maxZoom ||
-    minZoom > maxZoom ||
-    tileCount === 0 ||
-    (available !== undefined && bytes > available);
+  let validationError = "";
+  if (name.trim().length < 1) validationError = "名前を入力してください。";
+  else if (name.trim().length > 50) validationError = "名前は50文字以内で入力してください。";
+  else if (!validZoomRange)
+    validationError = `ズームは${STD_TILE_SOURCE.minZoom}〜${STD_TILE_SOURCE.maxZoom}の整数で、最小ズームが最大ズーム以下になるよう入力してください。`;
+  else if (tileCount === 0) validationError = "保存するタイルがありません。";
+  else if (available !== undefined && bytes !== undefined && bytes > available)
+    validationError = "推定容量が空き容量を超えています。";
   const submit = async () => {
-    if (!snapshot || invalid) return;
+    if (!snapshot) return;
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
     setSaving(true);
     setError("");
     try {
@@ -259,8 +272,8 @@ function CreateAreaDialog({
         id: crypto.randomUUID(),
         name,
         bounds: snapshot.bounds,
-        minZoom,
-        maxZoom,
+        minZoom: parsedMinZoom,
+        maxZoom: parsedMaxZoom,
         estimatedBytes: bytes,
       });
       onCreated(area.id);
@@ -278,7 +291,7 @@ function CreateAreaDialog({
       actions={
         <>
           <Button onClick={onClose}>キャンセル</Button>
-          <Button variant="primary" disabled={invalid || saving} onClick={() => void submit()}>
+          <Button variant="primary" disabled={saving} onClick={() => void submit()}>
             {saving ? "作成中…" : "保存を開始"}
           </Button>
         </>
@@ -306,7 +319,7 @@ function CreateAreaDialog({
               max={STD_TILE_SOURCE.maxZoom}
               step={1}
               value={minZoom}
-              onChange={(event) => setMinZoom(Number(event.target.value))}
+              onChange={(event) => setMinZoom(event.target.value)}
             />
           </label>
           <label>
@@ -317,7 +330,7 @@ function CreateAreaDialog({
               max={STD_TILE_SOURCE.maxZoom}
               step={1}
               value={maxZoom}
-              onChange={(event) => setMaxZoom(Number(event.target.value))}
+              onChange={(event) => setMaxZoom(event.target.value)}
             />
           </label>
         </div>
@@ -331,25 +344,28 @@ function CreateAreaDialog({
             className={styles.allZoomButton}
             aria-label="全ズームを選択"
             onClick={() => {
-              setMinZoom(STD_TILE_SOURCE.minZoom);
-              setMaxZoom(STD_TILE_SOURCE.maxZoom);
+              setMinZoom(String(STD_TILE_SOURCE.minZoom));
+              setMaxZoom(String(STD_TILE_SOURCE.maxZoom));
             }}
           >
             全ズーム
           </Button>
         </div>
         <p>
-          対象タイル: <strong>{tileCount.toLocaleString()} 枚</strong>
+          対象タイル:{" "}
+          <strong>
+            {tileCount === undefined ? "計算できません" : `${tileCount.toLocaleString()} 枚`}
+          </strong>
         </p>
         <p>
-          推定容量: <strong>{formatBytes(bytes)}</strong>
+          推定容量: <strong>{bytes === undefined ? "計算できません" : formatBytes(bytes)}</strong>
         </p>
         <p className={styles.muted}>
           ブラウザー使用量:{" "}
           {estimate?.usage === undefined ? "取得できません" : formatBytes(estimate.usage)} ／
           空き容量: {available === undefined ? "取得できません" : formatBytes(available)}
         </p>
-        {available !== undefined && bytes > available && (
+        {available !== undefined && bytes !== undefined && bytes > available && (
           <p className={styles.warning}>推定容量が空き容量を超えています。</p>
         )}
         {error && <p className={styles.error}>{error}</p>}
