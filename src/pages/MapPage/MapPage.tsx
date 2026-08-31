@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map } from "maplibre-gl";
+import { useShallow } from "zustand/react/shallow";
 import { Button } from "../../components/Button/Button";
 import { Dialog } from "../../components/Dialog/Dialog";
 import { UnsupportedNotice } from "../../components/UnsupportedNotice/UnsupportedNotice";
@@ -38,13 +39,15 @@ export function MapPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | undefined>(undefined);
   const centeredRef = useRef(false);
-  const camera = useMapStore((state) => ({
-    longitude: state.longitude,
-    latitude: state.latitude,
-    zoom: state.zoom,
-    bearing: state.bearing,
-    pitch: state.pitch,
-  }));
+  const camera = useMapStore(
+    useShallow((state) => ({
+      longitude: state.longitude,
+      latitude: state.latitude,
+      zoom: state.zoom,
+      bearing: state.bearing,
+      pitch: state.pitch,
+    })),
+  );
   const setCamera = useMapStore((state) => state.setCamera);
   const location = useLocationStore();
   const orientation = useOrientationStore();
