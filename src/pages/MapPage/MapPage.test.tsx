@@ -64,4 +64,23 @@ describe("MapPage", () => {
     expect(screen.getByRole("spinbutton", { name: "最小ズーム" })).toHaveValue(0);
     expect(screen.getByRole("spinbutton", { name: "最大ズーム" })).toHaveValue(18);
   });
+
+  it("allows clearing a zoom field and reports the validation error when saving", async () => {
+    const user = userEvent.setup();
+    render(<MapPage />);
+
+    await user.click(screen.getByRole("button", { name: "表示範囲を保存" }));
+    await user.clear(screen.getByRole("spinbutton", { name: "最大ズーム" }));
+
+    expect(screen.getByRole("spinbutton", { name: "最大ズーム" })).toHaveValue(null);
+    expect(screen.getByText("推定容量:").parentElement).toHaveTextContent("計算できません");
+
+    await user.click(screen.getByRole("button", { name: "保存を開始" }));
+
+    expect(
+      screen.getByText(
+        "ズームは0〜18の整数で、最小ズームが最大ズーム以下になるよう入力してください。",
+      ),
+    ).toBeInTheDocument();
+  });
 });
