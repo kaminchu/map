@@ -18,6 +18,7 @@ export function createMap({ container, camera, onMoveEnd }: CreateMapOptions): M
     zoom: camera.zoom,
     bearing: camera.bearing,
     pitch: camera.pitch,
+    attributionControl: { compact: false },
     style: {
       version: 8,
       sources: {
@@ -33,7 +34,7 @@ export function createMap({ container, camera, onMoveEnd }: CreateMapOptions): M
       layers: [{ id: "gsi-raster", type: "raster", source: "gsi" }],
     },
   });
-  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
   const moveEnd = () =>
     onMoveEnd({
       longitude: map.getCenter().lng,
