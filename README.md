@@ -97,7 +97,6 @@ GitHub Actions runs the tests on pushes and pull requests. Pushes to `main` also
 
 This project uses the GSI Standard Map tiles provided by the Geospatial Information Authority of Japan. The map displays the required attribution. Before operating a public deployment or redistributing downloaded data, review the current [GSI tile list and terms of use](https://maps.gsi.go.jp/development/ichiran.html).
 
-
 ## License
 
 No license file is currently included in this repository.

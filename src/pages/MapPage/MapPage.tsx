@@ -22,6 +22,7 @@ import { useOrientationStore } from "../../stores/orientationStore";
 import { useUiStore } from "../../stores/uiStore";
 import { createMap } from "../../map/createMap";
 import { updateLocationLayers } from "../../map/locationLayers";
+import { STD_TILE_SOURCE } from "../../map/tileSources";
 import { useOrientation } from "../../features/orientation/useOrientation";
 import styles from "./MapPage.module.css";
 
@@ -143,6 +144,9 @@ export function MapPage() {
           </UnsupportedNotice>
         )}
       </div>
+      <div className={styles.zoomLevel} aria-live="polite">
+        ズーム {camera.zoom.toFixed(1)}
+      </div>
       <div className={styles.controls} aria-label="地図操作">
         <Button
           className={styles.controlButton}
@@ -219,10 +223,13 @@ function CreateAreaDialog({
   const [saving, setSaving] = useState(false);
   useEffect(() => {
     if (!open || !snapshot) return;
-    const floor = Math.floor(snapshot.zoom);
+    const currentZoom = Math.min(
+      STD_TILE_SOURCE.maxZoom,
+      Math.max(STD_TILE_SOURCE.minZoom, Math.floor(snapshot.zoom)),
+    );
     setName(defaultAreaName());
-    setMinZoom(floor);
-    setMaxZoom(Math.min(floor + 2, 18));
+    setMinZoom(currentZoom);
+    setMaxZoom(currentZoom);
     setError("");
     void getStorageEstimate()
       .then(setEstimate)
@@ -237,8 +244,8 @@ function CreateAreaDialog({
     name.trim().length > 50 ||
     !Number.isInteger(minZoom) ||
     !Number.isInteger(maxZoom) ||
-    minZoom < 0 ||
-    maxZoom > 18 ||
+    minZoom < STD_TILE_SOURCE.minZoom ||
+    maxZoom > STD_TILE_SOURCE.maxZoom ||
     minZoom > maxZoom ||
     tileCount === 0 ||
     (available !== undefined && bytes > available);
@@ -295,8 +302,8 @@ function CreateAreaDialog({
             最小ズーム
             <input
               type="number"
-              min={0}
-              max={18}
+              min={STD_TILE_SOURCE.minZoom}
+              max={STD_TILE_SOURCE.maxZoom}
               step={1}
               value={minZoom}
               onChange={(event) => setMinZoom(Number(event.target.value))}
@@ -306,13 +313,30 @@ function CreateAreaDialog({
             最大ズーム
             <input
               type="number"
-              min={0}
-              max={18}
+              min={STD_TILE_SOURCE.minZoom}
+              max={STD_TILE_SOURCE.maxZoom}
               step={1}
               value={maxZoom}
               onChange={(event) => setMaxZoom(Number(event.target.value))}
             />
           </label>
+        </div>
+        <div className={styles.zoomRange}>
+          <span>
+            保存可能なズームレベル: {STD_TILE_SOURCE.minZoom}〜{STD_TILE_SOURCE.maxZoom}
+          </span>
+          <Button
+            type="button"
+            variant="ghost"
+            className={styles.allZoomButton}
+            aria-label="全ズームを選択"
+            onClick={() => {
+              setMinZoom(STD_TILE_SOURCE.minZoom);
+              setMaxZoom(STD_TILE_SOURCE.maxZoom);
+            }}
+          >
+            全ズーム
+          </Button>
         </div>
         <p>
           対象タイル: <strong>{tileCount.toLocaleString()} 枚</strong>

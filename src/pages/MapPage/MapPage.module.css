@@ -31,6 +31,18 @@
   border-radius: 999px;
   font-size: 0.78rem;
 }
+.zoomLevel {
+  position: absolute;
+  z-index: var(--z-controls);
+  left: 0.75rem;
+  bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  padding: 0.4rem 0.65rem;
+  color: #fff;
+  background: #26364ddd;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  pointer-events: none;
+}
 .controls {
   position: absolute;
   z-index: var(--z-controls);
@@ -101,6 +113,19 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
+}
+.zoomRange {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.allZoomButton {
+  min-height: 36px;
+  padding: 0.4rem 0.65rem;
+  white-space: nowrap;
 }
 .form p {
   margin: 0;
