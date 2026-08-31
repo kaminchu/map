@@ -23,7 +23,7 @@ export const STD_TILE_SOURCE: MapTileSource = {
     return `https://cyberjapandata.gsi.go.jp/xyz/std/${tile.z}/${tile.x}/${tile.y}.png`;
   },
   attribution:
-    '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noreferrer">地理院タイル</a>',
+    '地図出典: <a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noreferrer">地理院タイル</a>',
 };
 
 export const TILE_SOURCES: Record<TileSourceId, MapTileSource> = { std: STD_TILE_SOURCE };
