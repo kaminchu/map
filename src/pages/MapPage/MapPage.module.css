@@ -1,0 +1,115 @@
+.page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #dbeafe;
+}
+.map {
+  position: absolute;
+  inset: 0 0 0 0;
+}
+.statuses {
+  position: absolute;
+  z-index: var(--z-controls);
+  top: calc(0.75rem + env(safe-area-inset-top));
+  right: 0.75rem;
+  left: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.statuses > * {
+  pointer-events: auto;
+}
+.badge {
+  padding: 0.4rem 0.65rem;
+  color: #fff;
+  background: #26364ddd;
+  border-radius: 999px;
+  font-size: 0.78rem;
+}
+.controls {
+  position: absolute;
+  z-index: var(--z-controls);
+  right: 0.75rem;
+  bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  display: grid;
+  gap: 0.55rem;
+}
+.controlButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 5.5rem;
+  padding: 0.5rem;
+  box-shadow: 0 0.2rem 0.8rem #0004;
+}
+.controlButton:first-letter {
+  font-size: 1.2rem;
+}
+.controlButton span {
+  font-size: 0.75rem;
+}
+.inlineMessage {
+  position: absolute;
+  z-index: var(--z-controls);
+  right: 0.75rem;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  max-width: calc(100% - 1.5rem);
+  padding: 0.6rem 0.75rem;
+  color: #fff;
+  background: #7f1d1ddd;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+}
+.form {
+  display: grid;
+  gap: 0.85rem;
+}
+.form label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+.form input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.5rem;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.readonly {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.7rem;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+.readonly strong {
+  color: var(--muted);
+}
+.zoomFields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.form p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+.muted {
+  color: var(--muted);
+  font-size: 0.8rem !important;
+}
+.warning {
+  color: #fbbf24;
+}
+.error {
+  color: #fca5a5;
+}
