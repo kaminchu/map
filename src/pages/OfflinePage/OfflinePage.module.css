@@ -1,0 +1,83 @@
+.page {
+  min-height: 100%;
+  overflow: auto;
+  padding: calc(1.25rem + env(safe-area-inset-top)) 1rem calc(6rem + env(safe-area-inset-bottom));
+  background: var(--surface);
+}
+.header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  max-width: 48rem;
+  margin: 0 auto 1.5rem;
+}
+.header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+.eyebrow {
+  margin: 0 0 0.25rem;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.mapLink,
+.primaryLink,
+.detailLink {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+.empty {
+  max-width: 48rem;
+  margin: 10vh auto;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+.empty h2 {
+  font-size: 1.2rem;
+}
+.empty p {
+  color: var(--muted);
+}
+.cards {
+  display: grid;
+  gap: 0.8rem;
+  max-width: 48rem;
+  margin: 0 auto;
+}
+.card {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.cardTitle {
+  color: var(--text);
+  text-decoration: none;
+}
+.card h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+.meta,
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.actions {
+  justify-content: flex-end;
+}
+.actions button {
+  min-height: 40px;
+}
+.error {
+  color: #fca5a5;
+}
