@@ -14,14 +14,19 @@ export function addLocationLayers(map: Map): void {
     id: "current-location-accuracy",
     type: "fill",
     source: sourceId,
+    filter: ["==", ["get", "kind"], "accuracy"],
     paint: { "fill-color": "#2563eb", "fill-opacity": 0.16, "fill-outline-color": "#2563eb" },
   });
   map.addLayer({
     id: "current-location-heading",
-    type: "line",
+    type: "fill",
     source: sourceId,
     filter: ["==", ["get", "kind"], "heading"],
-    paint: { "line-color": "#1d4ed8", "line-width": 4, "line-opacity": 0.9 },
+    paint: {
+      "fill-color": "#facc15",
+      "fill-opacity": 0.3,
+      "fill-outline-color": "#eab308",
+    },
   });
   map.addLayer({
     id: "current-location-point",
@@ -64,16 +69,21 @@ export function updateLocationLayers(
   const features: GeoJSON.Feature[] = [circle, point];
   if (location.heading !== undefined && Number.isFinite(location.heading)) {
     const distance = Math.max(20, location.accuracy ?? 20) * 2;
-    const end = [
-      location.longitude +
-        (distance * Math.sin((location.heading * Math.PI) / 180)) /
-          (111_320 * Math.max(0.1, Math.cos((location.latitude * Math.PI) / 180))),
-      location.latitude + (distance * Math.cos((location.heading * Math.PI) / 180)) / 111_320,
-    ];
+    const coordinates: number[][] = [[location.longitude, location.latitude]];
+    for (let offset = -25; offset <= 25; offset += 5) {
+      const angle = ((location.heading + offset) * Math.PI) / 180;
+      coordinates.push([
+        location.longitude +
+          (distance * Math.sin(angle)) /
+            (111_320 * Math.max(0.1, Math.cos((location.latitude * Math.PI) / 180))),
+        location.latitude + (distance * Math.cos(angle)) / 111_320,
+      ]);
+    }
+    coordinates.push([location.longitude, location.latitude]);
     features.push({
       type: "Feature",
       properties: { kind: "heading" },
-      geometry: { type: "LineString", coordinates: [[location.longitude, location.latitude], end] },
+      geometry: { type: "Polygon", coordinates: [coordinates] },
     });
   }
   source.setData({ type: "FeatureCollection", features });

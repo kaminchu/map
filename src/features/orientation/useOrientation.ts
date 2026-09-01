@@ -7,14 +7,26 @@ import {
   type OrientationEventWithCompass,
 } from "./deviceOrientation";
 
-export function useOrientation(): { enable: () => Promise<void> } {
+export function useOrientation(): { enable: () => Promise<void>; disable: () => void } {
   const set = useOrientationStore((state) => state.set);
+  const reset = useOrientationStore((state) => state.reset);
   const handlerRef = useRef<((event: Event) => void) | undefined>(undefined);
   const enabledRef = useRef(false);
   const absoluteRef = useRef(false);
+  const removeListeners = useCallback(() => {
+    const handler = handlerRef.current;
+    if (handler) {
+      window.removeEventListener("deviceorientationabsolute", handler);
+      window.removeEventListener("deviceorientation", handler);
+    }
+    handlerRef.current = undefined;
+    absoluteRef.current = false;
+  }, []);
   const enable = useCallback(async () => {
     if (enabledRef.current) return;
+    enabledRef.current = true;
     if (!orientationSupported()) {
+      enabledRef.current = false;
       set({ status: "unavailable" });
       return;
     }
@@ -25,7 +37,9 @@ export function useOrientation(): { enable: () => Promise<void> } {
     } catch {
       permission = "denied";
     }
+    if (!enabledRef.current) return;
     if (permission !== "granted") {
+      enabledRef.current = false;
       set({ status: permission === "unsupported" ? "unavailable" : "denied" });
       return;
     }
@@ -40,19 +54,18 @@ export function useOrientation(): { enable: () => Promise<void> } {
     window.addEventListener("deviceorientationabsolute", handler);
     window.addEventListener("deviceorientation", handler);
     handlerRef.current = handler;
-    enabledRef.current = true;
   }, [set]);
+  const disable = useCallback(() => {
+    enabledRef.current = false;
+    removeListeners();
+    reset();
+  }, [removeListeners, reset]);
   useEffect(
     () => () => {
-      const handler = handlerRef.current;
-      if (handler) {
-        window.removeEventListener("deviceorientationabsolute", handler);
-        window.removeEventListener("deviceorientation", handler);
-      }
       enabledRef.current = false;
-      absoluteRef.current = false;
+      removeListeners();
     },
-    [],
+    [removeListeners],
   );
-  return { enable };
+  return { enable, disable };
 }

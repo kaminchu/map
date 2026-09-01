@@ -54,9 +54,12 @@ export function MapPage() {
   const orientation = useOrientationStore();
   const online = useNetworkStore((state) => state.online);
   const setDialog = useUiStore((state) => state.setDialog);
-  const { start } = useLocationTracking();
-  const { enable } = useOrientation();
+  const { start, stop } = useLocationTracking();
+  const { enable, disable } = useOrientation();
+  const [locationModeEnabled, setLocationModeEnabled] = useState(false);
   const [snapshot, setSnapshot] = useState<{ bounds: GeoBounds; zoom: number }>();
+  const orientationModeEnabled =
+    orientation.status === "requesting" || orientation.status === "available";
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -79,22 +82,26 @@ export function MapPage() {
       gpsHeading: location.gpsHeading,
       speed: location.speed,
       orientationHeading: orientation.heading,
-    })?.heading;
+    });
     const update = () =>
       updateLocationLayers(map, {
         longitude: location.longitude,
         latitude: location.latitude,
         accuracy: location.accuracy,
-        heading,
+        heading: orientationModeEnabled ? heading?.heading : undefined,
       });
     if (map.isStyleLoaded()) update();
     else map.once("load", update);
-    if (location.status === "available" && !centeredRef.current) {
-      map.flyTo({
-        center: [location.longitude, location.latitude],
-        zoom: Math.max(map.getZoom(), 14),
-      });
-      centeredRef.current = true;
+    if (location.status === "available" && locationModeEnabled) {
+      if (centeredRef.current) {
+        map.setCenter([location.longitude, location.latitude]);
+      } else {
+        map.flyTo({
+          center: [location.longitude, location.latitude],
+          zoom: Math.max(map.getZoom(), 14),
+        });
+        centeredRef.current = true;
+      }
     }
   }, [
     location.longitude,
@@ -104,23 +111,18 @@ export function MapPage() {
     location.speed,
     location.status,
     orientation.heading,
+    orientationModeEnabled,
+    locationModeEnabled,
   ]);
 
   const locate = () => {
-    const map = mapRef.current;
-    if (
-      location.status === "available" &&
-      location.longitude !== undefined &&
-      location.latitude !== undefined &&
-      map
-    ) {
-      map.flyTo({
-        center: [location.longitude, location.latitude],
-        zoom: Math.max(map.getZoom(), 14),
-      });
-      centeredRef.current = true;
+    if (locationModeEnabled) {
+      setLocationModeEnabled(false);
+      centeredRef.current = false;
+      stop();
       return;
     }
+    setLocationModeEnabled(true);
     centeredRef.current = false;
     start();
   };
@@ -130,7 +132,8 @@ export function MapPage() {
     setDialog("create-area");
   };
   const openOrientation = () => {
-    void enable();
+    if (orientationModeEnabled) disable();
+    else void enable();
   };
 
   return (
@@ -149,17 +152,19 @@ export function MapPage() {
       </div>
       <div className={styles.controls} aria-label="地図操作">
         <Button
-          className={styles.controlButton}
+          className={`${styles.controlButton} ${locationModeEnabled ? styles.activeControl : ""}`}
           variant="secondary"
-          aria-label="現在地を表示"
+          aria-label={locationModeEnabled ? "現在地の追従を無効にする" : "現在地の追従を有効にする"}
+          aria-pressed={locationModeEnabled}
           onClick={locate}
         >
           ◎<span>現在地</span>
         </Button>
         <Button
-          className={styles.controlButton}
+          className={`${styles.controlButton} ${orientationModeEnabled ? styles.activeControl : ""}`}
           variant="secondary"
-          aria-label="方角を有効にする"
+          aria-label={orientationModeEnabled ? "方角を無効にする" : "方角を有効にする"}
+          aria-pressed={orientationModeEnabled}
           onClick={openOrientation}
         >
           ➤

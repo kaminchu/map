@@ -66,6 +66,11 @@
 .controlButton span {
   font-size: 0.75rem;
 }
+.activeControl {
+  color: #07131d;
+  background: var(--accent);
+  border-color: var(--accent);
+}
 .inlineMessage {
   position: absolute;
   z-index: var(--z-controls);
