@@ -1,10 +1,14 @@
 import { act, cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useLocationStore } from "../../stores/locationStore";
 import { useMapStore } from "../../stores/mapStore";
+import { useOrientationStore } from "../../stores/orientationStore";
 import { useUiStore } from "../../stores/uiStore";
 import { MapPage } from "./MapPage";
 
+const locationTracking = vi.hoisted(() => ({ start: vi.fn(), stop: vi.fn() }));
+const orientationTracking = vi.hoisted(() => ({ enable: vi.fn(), disable: vi.fn() }));
 const map = vi.hoisted(() => ({
   getBounds: vi.fn(() => ({
     getWest: () => 139,
@@ -13,11 +17,22 @@ const map = vi.hoisted(() => ({
     getNorth: () => 36,
   })),
   getZoom: vi.fn(() => 7.6),
+  getSource: vi.fn(),
+  isStyleLoaded: vi.fn(() => true),
+  once: vi.fn(),
+  flyTo: vi.fn(),
+  setCenter: vi.fn(),
   remove: vi.fn(),
 }));
 const createMap = vi.hoisted(() => vi.fn());
 
 vi.mock("../../map/createMap", () => ({ createMap }));
+vi.mock("../../features/location/geolocation", () => ({
+  useLocationTracking: () => locationTracking,
+}));
+vi.mock("../../features/orientation/useOrientation", () => ({
+  useOrientation: () => orientationTracking,
+}));
 vi.mock("../../features/storage/storageService", () => ({
   getStorageEstimate: vi.fn(() => Promise.resolve({})),
   isTilePersistenceSupported: vi.fn(() => true),
@@ -30,6 +45,17 @@ describe("MapPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useMapStore.setState({ longitude: 138, latitude: 37, zoom: 5, bearing: 0, pitch: 0 });
+    useLocationStore.setState({
+      status: "idle",
+      tracking: false,
+      longitude: undefined,
+      latitude: undefined,
+      accuracy: undefined,
+      gpsHeading: undefined,
+      speed: undefined,
+      timestamp: undefined,
+    });
+    useOrientationStore.setState({ status: "idle", heading: undefined, absolute: false });
     useUiStore.setState({ dialog: undefined });
     createMap.mockReturnValue(map);
   });
@@ -82,5 +108,62 @@ describe("MapPage", () => {
         "ズームは0〜18の整数で、最小ズームが最大ズーム以下になるよう入力してください。",
       ),
     ).toBeInTheDocument();
+  });
+
+  it("follows location updates until the current-location button is pressed again", async () => {
+    const user = userEvent.setup();
+    render(<MapPage />);
+
+    await user.click(screen.getByRole("button", { name: "現在地の追従を有効にする" }));
+    expect(locationTracking.start).toHaveBeenCalledOnce();
+    expect(screen.getByRole("button", { name: "現在地の追従を無効にする" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    act(() => {
+      useLocationStore.setState({
+        status: "available",
+        tracking: true,
+        longitude: 139.1,
+        latitude: 35.1,
+      });
+    });
+    expect(map.flyTo).toHaveBeenLastCalledWith({ center: [139.1, 35.1], zoom: 14 });
+
+    act(() => {
+      useLocationStore.setState({ longitude: 139.2, latitude: 35.2 });
+    });
+    expect(map.setCenter).toHaveBeenLastCalledWith([139.2, 35.2]);
+
+    await user.click(screen.getByRole("button", { name: "現在地の追従を無効にする" }));
+    expect(locationTracking.stop).toHaveBeenCalledOnce();
+    const centerCalls = map.setCenter.mock.calls.length;
+    act(() => {
+      useLocationStore.setState({ longitude: 139.3, latitude: 35.3 });
+    });
+    expect(map.setCenter).toHaveBeenCalledTimes(centerCalls);
+  });
+
+  it("toggles orientation mode and displays the heading while enabled", async () => {
+    orientationTracking.enable.mockImplementation(async () => {
+      useOrientationStore.setState({ status: "available", heading: 123, absolute: true });
+    });
+    orientationTracking.disable.mockImplementation(() => {
+      useOrientationStore.getState().reset();
+    });
+    const user = userEvent.setup();
+    render(<MapPage />);
+
+    await user.click(screen.getByRole("button", { name: "方角を有効にする" }));
+    expect(orientationTracking.enable).toHaveBeenCalledOnce();
+    expect(screen.getByRole("button", { name: "方角を無効にする" })).toHaveTextContent("123°");
+
+    await user.click(screen.getByRole("button", { name: "方角を無効にする" }));
+    expect(orientationTracking.disable).toHaveBeenCalledOnce();
+    expect(screen.getByRole("button", { name: "方角を有効にする" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
   });
 });
