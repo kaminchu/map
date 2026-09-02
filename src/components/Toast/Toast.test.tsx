@@ -13,8 +13,6 @@ describe("Toasts", () => {
 
     const container = screen.getByRole("status").parentElement;
     expect(container).not.toBeNull();
-    expect(getComputedStyle(container!).bottom).toBe(
-      "calc(6rem + env(safe-area-inset-bottom))",
-    );
+    expect(getComputedStyle(container!).bottom).toBe("calc(6rem + env(safe-area-inset-bottom))");
   });
 });
