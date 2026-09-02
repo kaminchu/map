@@ -88,6 +88,14 @@ export function SettingsPage() {
           </Button>
         </div>
       </section>
+      <section className={styles.section}>
+        <h2>バージョン情報</h2>
+        <div className={styles.stats}>
+          <Stat label="バージョン" value={__APP_VERSION__} />
+          <Stat label="ビルド日時" value={__BUILD_TIME__} />
+          <Stat label="コミットハッシュ" value={__COMMIT_HASH__} />
+        </div>
+      </section>
       <Dialog
         open={confirm}
         title="一時キャッシュを削除"

@@ -26,6 +26,9 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
 }
+.section + .section {
+  margin-top: 1rem;
+}
 .section h2 {
   font-size: 1.05rem;
 }
