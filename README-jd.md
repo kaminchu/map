@@ -30,6 +30,7 @@
 
 - [Node.js](https://nodejs.org/) 22
 - npm
+- [Zstandard](https://facebook.github.io/zstd/)（`zstd`コマンド）
 
 すべての機能を利用するには、WebGL、Service Worker、IndexedDB、OPFSに対応するモダンブラウザーが必要です。現在地、端末方位、永続ストレージ、PWAのインストールは、ブラウザーと端末の対応状況によって利用できない場合があります。これらの機能は通常、本番環境ではHTTPSが必要です。ローカル開発時の`localhost`はセキュアコンテキストとして扱われます。
 

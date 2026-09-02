@@ -30,6 +30,7 @@ For development:
 
 - [Node.js](https://nodejs.org/) 22
 - npm
+- [Zstandard](https://facebook.github.io/zstd/) (`zstd` command)
 
 For the full application experience, use a modern browser with WebGL, service workers, IndexedDB, and OPFS support. Geolocation, device orientation, persistent storage, and PWA installation depend on browser and device support. These features generally require HTTPS in production; `localhost` is treated as a secure context for local development.
 

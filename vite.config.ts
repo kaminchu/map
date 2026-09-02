@@ -2,6 +2,7 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { loadEnv } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
+import { flatGeobufPlugin } from "./build/flatGeobufPlugin";
 
 export default defineConfig(({ mode }) => {
   const base = loadEnv(mode, ".", "").BASE_PATH ?? "/";
@@ -10,6 +11,7 @@ export default defineConfig(({ mode }) => {
     base,
     plugins: [
       react(),
+      flatGeobufPlugin(),
       VitePWA({
         registerType: "autoUpdate",
         strategies: "generateSW",
