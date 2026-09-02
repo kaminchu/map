@@ -46,7 +46,7 @@ export function createMap({ container, camera, onMoveEnd, onUserMove }: CreateMa
     });
   map.on("moveend", moveEnd);
   map.on("movestart", (event) => {
-    if (event.originalEvent) onUserMove();
+    if (event.originalEvent && !map.isZooming()) onUserMove();
   });
   map.once("load", () => addLocationLayers(map));
   return map;
