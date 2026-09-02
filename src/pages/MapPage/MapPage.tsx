@@ -58,6 +58,7 @@ export function MapPage() {
   const { start, stop } = useLocationTracking();
   const { enable, disable } = useOrientation();
   const [locationModeEnabled, setLocationModeEnabled] = useState(true);
+  const locationModeEnabledRef = useRef(true);
   const [snapshot, setSnapshot] = useState<{ bounds: GeoBounds; zoom: number }>();
   const orientationModeEnabled =
     orientation.status === "requesting" || orientation.status === "available";
@@ -68,6 +69,13 @@ export function MapPage() {
       container: containerRef.current,
       camera,
       onMoveEnd: (next) => setCamera(next),
+      onUserMove: () => {
+        if (!locationModeEnabledRef.current) return;
+        locationModeEnabledRef.current = false;
+        setLocationModeEnabled(false);
+        centeredRef.current = false;
+        stop();
+      },
     });
     mapRef.current = map;
     return () => {
@@ -122,11 +130,13 @@ export function MapPage() {
 
   const locate = () => {
     if (locationModeEnabled) {
+      locationModeEnabledRef.current = false;
       setLocationModeEnabled(false);
       centeredRef.current = false;
       stop();
       return;
     }
+    locationModeEnabledRef.current = true;
     setLocationModeEnabled(true);
     centeredRef.current = false;
     start();

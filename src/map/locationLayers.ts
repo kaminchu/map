@@ -11,15 +11,18 @@ function headingImage(): { width: number; height: number; data: Uint8Array } {
   const apex = 54;
   const center = headingImageSize / 2;
   const maxHalfWidth = 24;
-  for (let y = top; y <= apex; y += 1) {
-    const progress = (y - top) / (apex - top);
-    const halfWidth = maxHalfWidth * (1 - progress);
+  const outerRadius = Math.hypot(maxHalfWidth, apex - top);
+  for (let y = Math.floor(apex - outerRadius); y <= apex; y += 1) {
+    const distanceFromApex = apex - y;
+    const halfWidth = (distanceFromApex * maxHalfWidth) / (apex - top);
     for (let x = Math.ceil(center - halfWidth); x <= Math.floor(center + halfWidth); x += 1) {
+      const distance = Math.hypot(x - center, distanceFromApex);
+      if (distance > outerRadius) continue;
       const offset = (y * headingImageSize + x) * 4;
       data[offset] = 37;
       data[offset + 1] = 99;
       data[offset + 2] = 235;
-      data[offset + 3] = Math.round(32 + 64 * progress);
+      data[offset + 3] = Math.round(32 + 64 * (1 - distance / outerRadius));
     }
   }
   return { width: headingImageSize, height: headingImageSize, data };

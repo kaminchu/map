@@ -152,6 +152,20 @@ describe("MapPage", () => {
     expect(map.setCenter).toHaveBeenLastCalledWith([139.4, 35.4]);
   });
 
+  it("turns off location mode when the user moves the map", () => {
+    render(<MapPage />);
+    const options = createMap.mock.calls[0]?.[0];
+    if (!options) throw new Error("Map was not created");
+
+    act(() => options.onUserMove());
+
+    expect(screen.getByRole("button", { name: "現在地の追従を有効にする" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    expect(locationTracking.stop).toHaveBeenCalledOnce();
+  });
+
   it("toggles orientation mode and displays the heading while enabled", async () => {
     orientationTracking.enable.mockImplementation(async () => {
       useOrientationStore.setState({ status: "available", heading: 123, absolute: true });

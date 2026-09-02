@@ -8,9 +8,10 @@ export interface CreateMapOptions {
   container: HTMLElement;
   camera: CameraState;
   onMoveEnd: (camera: CameraState) => void;
+  onUserMove: () => void;
 }
 
-export function createMap({ container, camera, onMoveEnd }: CreateMapOptions): Map {
+export function createMap({ container, camera, onMoveEnd, onUserMove }: CreateMapOptions): Map {
   registerTileProtocol();
   const map = new maplibregl.Map({
     container,
@@ -44,6 +45,9 @@ export function createMap({ container, camera, onMoveEnd }: CreateMapOptions): M
       pitch: map.getPitch(),
     });
   map.on("moveend", moveEnd);
+  map.on("movestart", (event) => {
+    if (event.originalEvent) onUserMove();
+  });
   map.once("load", () => addLocationLayers(map));
   return map;
 }
