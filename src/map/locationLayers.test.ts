@@ -18,6 +18,11 @@ describe("addLocationLayers", () => {
       expect.objectContaining({ width: 96, height: 96 }),
       { pixelRatio: 2 },
     );
+    const image = map.addImage.mock.calls[0]?.[1] as { data: Uint8Array };
+    const alphaAt = (x: number, y: number) => image.data[(y * 96 + x) * 4 + 3] ?? 0;
+    expect(alphaAt(23, 8)).toBe(0);
+    expect(alphaAt(24, 8)).toBe(32);
+    expect(alphaAt(48, 8)).toBeLessThan(alphaAt(48, 54));
     expect(map.addLayer).toHaveBeenCalledWith(
       expect.objectContaining({
         id: "current-location-heading",

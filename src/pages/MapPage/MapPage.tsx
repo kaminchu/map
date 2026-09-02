@@ -101,7 +101,7 @@ export function MapPage() {
       if (centeredRef.current) {
         map.setCenter([location.longitude, location.latitude]);
       } else {
-        map.flyTo({
+        map.jumpTo({
           center: [location.longitude, location.latitude],
           zoom: 14,
         });

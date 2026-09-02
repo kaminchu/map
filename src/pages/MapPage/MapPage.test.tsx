@@ -20,7 +20,7 @@ const map = vi.hoisted(() => ({
   getSource: vi.fn(),
   isStyleLoaded: vi.fn(() => true),
   once: vi.fn(),
-  flyTo: vi.fn(),
+  jumpTo: vi.fn(),
   setCenter: vi.fn(),
   remove: vi.fn(),
 }));
@@ -128,7 +128,7 @@ describe("MapPage", () => {
         latitude: 35.1,
       });
     });
-    expect(map.flyTo).toHaveBeenLastCalledWith({ center: [139.1, 35.1], zoom: 14 });
+    expect(map.jumpTo).toHaveBeenLastCalledWith({ center: [139.1, 35.1], zoom: 14 });
 
     act(() => {
       useLocationStore.setState({ longitude: 139.2, latitude: 35.2 });
@@ -145,7 +145,7 @@ describe("MapPage", () => {
 
     map.getZoom.mockReturnValueOnce(16);
     await user.click(screen.getByRole("button", { name: "現在地の追従を有効にする" }));
-    expect(map.flyTo).toHaveBeenLastCalledWith({ center: [139.3, 35.3], zoom: 14 });
+    expect(map.jumpTo).toHaveBeenLastCalledWith({ center: [139.3, 35.3], zoom: 14 });
     act(() => {
       useLocationStore.setState({ longitude: 139.4, latitude: 35.4 });
     });
