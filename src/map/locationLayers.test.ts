@@ -30,7 +30,7 @@ describe("addLocationLayers", () => {
         type: "symbol",
         layout: expect.objectContaining({
           "icon-image": "current-location-heading-image",
-          "icon-size": 1,
+          "icon-size": 1.25,
           "icon-rotate": ["get", "heading"],
         }),
       }),

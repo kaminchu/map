@@ -52,7 +52,7 @@ export function addLocationLayers(map: Map): void {
     filter: ["==", ["get", "kind"], "heading"],
     layout: {
       "icon-image": headingImageId,
-      "icon-size": 1,
+      "icon-size": 1.25,
       "icon-rotate": ["get", "heading"],
       "icon-rotation-alignment": "map",
       "icon-allow-overlap": true,
