@@ -7,6 +7,7 @@ import { UnsupportedNotice } from "../../components/UnsupportedNotice/Unsupporte
 import { useLocationTracking } from "../../features/location/geolocation";
 import { resolveHeading } from "../../features/location/heading";
 import { createOfflineArea, defaultAreaName } from "../../features/offline/offlineAreaService";
+import { describeArea, municipalityAtCenter } from "../../features/offline/areaDescription";
 import { downloadManager } from "../../features/offline/downloadManager";
 import {
   getStorageEstimate,
@@ -226,19 +227,42 @@ function CreateAreaDialog({
   const [estimate, setEstimate] = useState<{ usage?: number; quota?: number }>();
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [describing, setDescribing] = useState(false);
   useEffect(() => {
     if (!open || !snapshot) return;
     const currentZoom = Math.min(
       STD_TILE_SOURCE.maxZoom,
       Math.max(STD_TILE_SOURCE.minZoom, Math.floor(snapshot.zoom)),
     );
-    setName(defaultAreaName());
+    const fallbackName = defaultAreaName();
+    let active = true;
+    setName(fallbackName);
+    setDescribing(true);
+    void municipalityAtCenter(snapshot.bounds)
+      .then((municipality) => {
+        if (active)
+          setName((current) =>
+            current === fallbackName ? describeArea(snapshot.bounds, municipality) : current,
+          );
+      })
+      .catch(() => {
+        if (active)
+          setName((current) =>
+            current === fallbackName ? describeArea(snapshot.bounds) : current,
+          );
+      })
+      .finally(() => {
+        if (active) setDescribing(false);
+      });
     setMinZoom(String(currentZoom));
     setMaxZoom(String(currentZoom));
     setError("");
     void getStorageEstimate()
       .then(setEstimate)
       .catch(() => setEstimate(undefined));
+    return () => {
+      active = false;
+    };
   }, [open, snapshot]);
   const parsedMinZoom = minZoom === "" ? Number.NaN : Number(minZoom);
   const parsedMaxZoom = maxZoom === "" ? Number.NaN : Number(maxZoom);
@@ -296,8 +320,8 @@ function CreateAreaDialog({
       actions={
         <>
           <Button onClick={onClose}>キャンセル</Button>
-          <Button variant="primary" disabled={saving} onClick={() => void submit()}>
-            {saving ? "作成中…" : "保存を開始"}
+          <Button variant="primary" disabled={saving || describing} onClick={() => void submit()}>
+            {saving ? "作成中…" : describing ? "地名取得中…" : "保存を開始"}
           </Button>
         </>
       }
