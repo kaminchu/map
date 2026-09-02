@@ -114,7 +114,6 @@ describe("MapPage", () => {
     const user = userEvent.setup();
     render(<MapPage />);
 
-    await user.click(screen.getByRole("button", { name: "現在地の追従を有効にする" }));
     expect(locationTracking.start).toHaveBeenCalledOnce();
     expect(screen.getByRole("button", { name: "現在地の追従を無効にする" })).toHaveAttribute(
       "aria-pressed",
@@ -143,6 +142,14 @@ describe("MapPage", () => {
       useLocationStore.setState({ longitude: 139.3, latitude: 35.3 });
     });
     expect(map.setCenter).toHaveBeenCalledTimes(centerCalls);
+
+    map.getZoom.mockReturnValueOnce(16);
+    await user.click(screen.getByRole("button", { name: "現在地の追従を有効にする" }));
+    expect(map.flyTo).toHaveBeenLastCalledWith({ center: [139.3, 35.3], zoom: 14 });
+    act(() => {
+      useLocationStore.setState({ longitude: 139.4, latitude: 35.4 });
+    });
+    expect(map.setCenter).toHaveBeenLastCalledWith([139.4, 35.4]);
   });
 
   it("toggles orientation mode and displays the heading while enabled", async () => {

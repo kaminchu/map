@@ -57,7 +57,7 @@ export function MapPage() {
   const setDialog = useUiStore((state) => state.setDialog);
   const { start, stop } = useLocationTracking();
   const { enable, disable } = useOrientation();
-  const [locationModeEnabled, setLocationModeEnabled] = useState(false);
+  const [locationModeEnabled, setLocationModeEnabled] = useState(true);
   const [snapshot, setSnapshot] = useState<{ bounds: GeoBounds; zoom: number }>();
   const orientationModeEnabled =
     orientation.status === "requesting" || orientation.status === "available";
@@ -74,6 +74,10 @@ export function MapPage() {
       map.remove();
       mapRef.current = undefined;
     };
+  }, []);
+
+  useEffect(() => {
+    start();
   }, []);
 
   useEffect(() => {
@@ -99,7 +103,7 @@ export function MapPage() {
       } else {
         map.flyTo({
           center: [location.longitude, location.latitude],
-          zoom: Math.max(map.getZoom(), 14),
+          zoom: 14,
         });
         centeredRef.current = true;
       }
