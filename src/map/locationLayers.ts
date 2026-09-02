@@ -2,6 +2,27 @@ import { GeoJSONSource, type Map } from "maplibre-gl";
 import { accuracyCircle } from "../tiles/tileMath";
 
 const sourceId = "current-location";
+const headingImageId = "current-location-heading-image";
+const headingImageSize = 96;
+
+function headingImage(): { width: number; height: number; data: Uint8Array } {
+  const data = new Uint8Array(headingImageSize * headingImageSize * 4);
+  const top = 8;
+  const apex = 54;
+  const center = headingImageSize / 2;
+  const maxHalfWidth = 36;
+  for (let y = top; y <= apex; y += 1) {
+    const halfWidth = maxHalfWidth * (1 - (y - top) / (apex - top));
+    for (let x = Math.ceil(center - halfWidth); x <= Math.floor(center + halfWidth); x += 1) {
+      const offset = (y * headingImageSize + x) * 4;
+      data[offset] = 37;
+      data[offset + 1] = 99;
+      data[offset + 2] = 235;
+      data[offset + 3] = 96;
+    }
+  }
+  return { width: headingImageSize, height: headingImageSize, data };
+}
 
 function emptyData(): GeoJSON.FeatureCollection {
   return { type: "FeatureCollection", features: [] };
@@ -10,6 +31,9 @@ function emptyData(): GeoJSON.FeatureCollection {
 export function addLocationLayers(map: Map): void {
   if (map.getSource(sourceId)) return;
   map.addSource(sourceId, { type: "geojson", data: emptyData() });
+  if (!map.hasImage(headingImageId)) {
+    map.addImage(headingImageId, headingImage(), { pixelRatio: 2 });
+  }
   map.addLayer({
     id: "current-location-accuracy",
     type: "fill",
@@ -19,13 +43,15 @@ export function addLocationLayers(map: Map): void {
   });
   map.addLayer({
     id: "current-location-heading",
-    type: "fill",
+    type: "symbol",
     source: sourceId,
     filter: ["==", ["get", "kind"], "heading"],
-    paint: {
-      "fill-color": "#facc15",
-      "fill-opacity": 0.3,
-      "fill-outline-color": "#eab308",
+    layout: {
+      "icon-image": headingImageId,
+      "icon-size": 1,
+      "icon-rotate": ["get", "heading"],
+      "icon-rotation-alignment": "map",
+      "icon-allow-overlap": true,
     },
   });
   map.addLayer({
@@ -68,22 +94,10 @@ export function updateLocationLayers(
   };
   const features: GeoJSON.Feature[] = [circle, point];
   if (location.heading !== undefined && Number.isFinite(location.heading)) {
-    const distance = Math.max(20, location.accuracy ?? 20) * 2;
-    const coordinates: number[][] = [[location.longitude, location.latitude]];
-    for (let offset = -25; offset <= 25; offset += 5) {
-      const angle = ((location.heading + offset) * Math.PI) / 180;
-      coordinates.push([
-        location.longitude +
-          (distance * Math.sin(angle)) /
-            (111_320 * Math.max(0.1, Math.cos((location.latitude * Math.PI) / 180))),
-        location.latitude + (distance * Math.cos(angle)) / 111_320,
-      ]);
-    }
-    coordinates.push([location.longitude, location.latitude]);
     features.push({
       type: "Feature",
-      properties: { kind: "heading" },
-      geometry: { type: "Polygon", coordinates: [coordinates] },
+      properties: { kind: "heading", heading: location.heading },
+      geometry: { type: "Point", coordinates: [location.longitude, location.latitude] },
     });
   }
   source.setData({ type: "FeatureCollection", features });
