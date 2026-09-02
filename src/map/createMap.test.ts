@@ -9,6 +9,7 @@ const map = {
   getCenter: vi.fn(() => ({ lng: 139.7, lat: 35.7 })),
   getPitch: vi.fn(() => 0),
   getZoom: vi.fn(() => 10),
+  isZooming: vi.fn(() => false),
   on: vi.fn(),
   once: vi.fn(),
 };
@@ -82,5 +83,23 @@ describe("createMap", () => {
 
     moveStart({ originalEvent: new MouseEvent("mousedown") });
     expect(onUserMove).toHaveBeenCalledOnce();
+  });
+
+  it("does not report user input when only the zoom is changing", () => {
+    const onUserMove = vi.fn();
+
+    createMap({
+      container: document.createElement("div"),
+      camera: { longitude: 139.7, latitude: 35.7, zoom: 10, bearing: 0, pitch: 0 },
+      onMoveEnd: vi.fn(),
+      onUserMove,
+    });
+
+    const moveStart = map.on.mock.calls.find(([event]) => event === "movestart")?.[1];
+    if (!moveStart) throw new Error("movestart handler was not registered");
+    map.isZooming.mockReturnValueOnce(true);
+    moveStart({ originalEvent: new WheelEvent("wheel") });
+
+    expect(onUserMove).not.toHaveBeenCalled();
   });
 });
