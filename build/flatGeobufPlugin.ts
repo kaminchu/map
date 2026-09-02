@@ -399,6 +399,7 @@ async function* streamFeatures(
     .pipe(pick.asStream({ filter: "features" }))
     .pipe(streamArray.asStream());
 
+  let streamCompleted = false;
   try {
     for await (const item of features) {
       const value = (item as { value?: unknown }).value;
@@ -407,8 +408,11 @@ async function* streamFeatures(
       }
       yield value;
     }
+    streamCompleted = true;
   } finally {
-    if (decompressor !== undefined && decompressor.exitCode === null) decompressor.kill();
+    if (!streamCompleted && decompressor !== undefined && decompressor.exitCode === null) {
+      decompressor.kill();
+    }
   }
 
   const result = await processResult;
