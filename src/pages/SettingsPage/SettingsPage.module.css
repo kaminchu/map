@@ -58,17 +58,21 @@
   gap: 0.4rem;
 }
 .helpButton {
-  width: 1.4rem;
-  height: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2rem;
+  height: 1.2rem;
   padding: 0;
   color: var(--muted);
   background: transparent;
   border: 1px solid var(--muted);
   border-radius: 50%;
   font: inherit;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 700;
   line-height: 1;
+  transform: translateY(2px);
   cursor: pointer;
 }
 .helpButton:hover {
