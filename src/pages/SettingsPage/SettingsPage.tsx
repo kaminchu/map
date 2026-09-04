@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from "../../components/Button/Button";
 import { Dialog } from "../../components/Dialog/Dialog";
 import { UnsupportedNotice } from "../../components/UnsupportedNotice/UnsupportedNotice";
 import {
   clearTemporaryCache,
   isTilePersistenceSupported,
-  requestPersistentStorage,
 } from "../../features/storage/storageService";
 import { useStorageStatistics } from "../../features/storage/useStorageStatistics";
 import { useUiStore } from "../../stores/uiStore";
@@ -14,16 +13,8 @@ import styles from "./SettingsPage.module.css";
 export function SettingsPage() {
   const { data, error, mutate } = useStorageStatistics();
   const [confirm, setConfirm] = useState(false);
+  const [showProtectionHelp, setShowProtectionHelp] = useState(false);
   const addToast = useUiStore((state) => state.addToast);
-  const protect = async () => {
-    const status = await requestPersistentStorage();
-    addToast({
-      kind: status === "granted" ? "success" : "info",
-      message:
-        status === "granted" ? "ストレージ保護を有効にしました。" : "ストレージ保護は未保証です。",
-    });
-    void mutate();
-  };
   const clear = async () => {
     try {
       const count = await clearTemporaryCache();
@@ -68,17 +59,32 @@ export function SettingsPage() {
                 : `${formatBytes(data.estimate.usage)} / ${formatBytes(data.estimate.quota)}`
             }
           />
+          <Stat
+            label={
+              <span className={styles.labelWithHelp}>
+                ストレージ保護
+                <button
+                  type="button"
+                  className={styles.helpButton}
+                  aria-label="ストレージ保護について"
+                  onClick={() => setShowProtectionHelp(true)}
+                >
+                  ?
+                </button>
+              </span>
+            }
+            value={
+              !data
+                ? "読み込み中…"
+                : data.persistence === "granted"
+                  ? "有効"
+                  : data.persistence === "unsupported"
+                    ? "非対応"
+                    : "未保証"
+            }
+          />
         </div>
-        <p className={styles.protection}>
-          ストレージ保護:{" "}
-          {data?.persistence === "granted"
-            ? "有効"
-            : data?.persistence === "unsupported"
-              ? "非対応"
-              : "未保証"}
-        </p>
         <div className={styles.buttons}>
-          <Button onClick={() => void protect()}>ストレージを保護</Button>
           <Button
             variant="danger"
             onClick={() => setConfirm(true)}
@@ -97,6 +103,24 @@ export function SettingsPage() {
         </div>
       </section>
       <Dialog
+        open={showProtectionHelp}
+        title="ストレージ保護について"
+        onClose={() => setShowProtectionHelp(false)}
+      >
+        <dl className={styles.protectionHelp}>
+          <dt>有効</dt>
+          <dd>
+            ブラウザーによる自動削除から保護されています。ユーザーがブラウザーの設定などから削除した場合は失われます。
+          </dd>
+          <dt>未保証</dt>
+          <dd>
+            データは保存されていますが、端末の空き容量が不足した場合などにブラウザーが自動削除する可能性があります。
+          </dd>
+          <dt>非対応</dt>
+          <dd>このブラウザーではストレージ保護の状態を確認できません。</dd>
+        </dl>
+      </Dialog>
+      <Dialog
         open={confirm}
         title="一時キャッシュを削除"
         onClose={() => setConfirm(false)}
@@ -114,7 +138,7 @@ export function SettingsPage() {
     </main>
   );
 }
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value }: { label: ReactNode; value: string }) {
   return (
     <div className={styles.stat}>
       <span>{label}</span>

@@ -7,6 +7,7 @@ import { offlineAreaRepository } from "../storage/metadata/offlineAreaRepository
 import { settingsRepository } from "../storage/metadata/settingsRepository";
 import { useOfflineStore } from "../stores/offlineStore";
 import { useSettingsStore } from "../stores/settingsStore";
+import { requestPersistentStorage } from "../features/storage/storageService";
 
 export function App() {
   useNetworkEvents();
@@ -14,6 +15,7 @@ export function App() {
   const setCacheLimit = useSettingsStore((state) => state.setCacheLimit);
   const setLoaded = useSettingsStore((state) => state.setLoaded);
   useEffect(() => {
+    void requestPersistentStorage();
     void offlineAreaRepository
       .pauseDownloadingAreas()
       .then(() => offlineAreaRepository.list())
