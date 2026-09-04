@@ -9,7 +9,6 @@ vi.mock("../../features/storage/useStorageStatistics", () => ({
 vi.mock("../../features/storage/storageService", () => ({
   clearTemporaryCache: vi.fn(),
   isTilePersistenceSupported: vi.fn(() => true),
-  requestPersistentStorage: vi.fn(),
 }));
 
 describe("SettingsPage", () => {
@@ -22,5 +21,11 @@ describe("SettingsPage", () => {
     expect(screen.getByText(__APP_VERSION__)).toBeInTheDocument();
     expect(screen.getByText(__BUILD_TIME__)).toBeInTheDocument();
     expect(screen.getByText(__COMMIT_HASH__)).toBeInTheDocument();
+  });
+
+  it("does not show a manual storage protection button", () => {
+    render(<SettingsPage />);
+
+    expect(screen.queryByRole("button", { name: "ストレージを保護" })).not.toBeInTheDocument();
   });
 });

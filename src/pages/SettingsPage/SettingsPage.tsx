@@ -5,7 +5,6 @@ import { UnsupportedNotice } from "../../components/UnsupportedNotice/Unsupporte
 import {
   clearTemporaryCache,
   isTilePersistenceSupported,
-  requestPersistentStorage,
 } from "../../features/storage/storageService";
 import { useStorageStatistics } from "../../features/storage/useStorageStatistics";
 import { useUiStore } from "../../stores/uiStore";
@@ -15,15 +14,6 @@ export function SettingsPage() {
   const { data, error, mutate } = useStorageStatistics();
   const [confirm, setConfirm] = useState(false);
   const addToast = useUiStore((state) => state.addToast);
-  const protect = async () => {
-    const status = await requestPersistentStorage();
-    addToast({
-      kind: status === "granted" ? "success" : "info",
-      message:
-        status === "granted" ? "ストレージ保護を有効にしました。" : "ストレージ保護は未保証です。",
-    });
-    void mutate();
-  };
   const clear = async () => {
     try {
       const count = await clearTemporaryCache();
@@ -78,7 +68,6 @@ export function SettingsPage() {
               : "未保証"}
         </p>
         <div className={styles.buttons}>
-          <Button onClick={() => void protect()}>ストレージを保護</Button>
           <Button
             variant="danger"
             onClick={() => setConfirm(true)}
